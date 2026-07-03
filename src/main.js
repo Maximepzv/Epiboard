@@ -2,7 +2,6 @@ import Vue from 'vue';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
-import VueAnalytics from 'vue-analytics';
 import Vuetify from 'vuetify/lib';
 import App from '@/App';
 import { i18n } from '@/i18n';
@@ -13,18 +12,8 @@ import '@/style.scss';
 
 Vue.config.productionTip = false;
 
-// TODO: Firefox doesnt allow to load external script
-if (browserName === 'chrome' && !window.__PRERENDER_INJECTED) {
-  Vue.use(VueAnalytics, {
-    id: 'UA-78514802-2',
-    // In Chrome extension, must close checking protocol.
-    set: [{ field: 'checkProtocolTask', value: null }],
-    router,
-    debug: {
-      sendHitTask: localStorage.getItem('analytics') !== 'false',
-    },
-  });
-}
+// Manifest V3 CSP locks script-src to 'self', so the Google Analytics
+// external script can no longer be injected in the extension context.
 
 Vue.use(Vuetify, {
   iconfont: 'md',

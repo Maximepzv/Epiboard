@@ -1,6 +1,6 @@
 #lastfm {
   overflow: hidden;
-  /deep/ .v-tabs__bar {
+  ::v-deep .v-tabs__bar {
     display: none;
   }
   .prev, .next {

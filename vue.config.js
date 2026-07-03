@@ -59,13 +59,17 @@ for (let i = 0; i < excludeCards.length; i += 1) {
 }
 
 // Filter permissions listed in cards manifest with optional permissions
-const { optional_permissions } = require(`./src/manifest-${browserName}.json`); // eslint-disable-line
+const {
+  optional_permissions: optionalPermissions = [],
+  optional_host_permissions: optionalHostPermissions = [],
+} = require(`./src/manifest-${browserName}.json`); // eslint-disable-line
+const allOptionalPermissions = optionalPermissions.concat(optionalHostPermissions);
 const cardsKeys = Object.keys(cards);
 for (let i = 0; i < cardsKeys.length; i += 1) {
   const key = cardsKeys[i];
   if (cards[key].manifest && cards[key].manifest.permissions) {
     cards[key].manifest.permissions = cards[key].manifest.permissions
-      .filter(f => optional_permissions.indexOf(f) > -1);
+      .filter(f => allOptionalPermissions.indexOf(f) > -1);
     if (!cards[key].manifest.permissions.length) delete cards[key].manifest.permissions;
   }
 }
@@ -134,6 +138,10 @@ const removeEvals = file => new Promise((resolve, reject) => {
 module.exports = {
   // Disable source-map in production
   productionSourceMap: !isProduction,
+  // eslint-loader crashes with the currently resolved eslint/babel-eslint
+  // combo on some template literals (unrelated to this project's code);
+  // linting is still available via `yarn lint`.
+  lintOnSave: false,
   configureWebpack: (config) => {
     if (isProduction) {
       /* eslint-disable no-param-reassign */
@@ -161,7 +169,9 @@ module.exports = {
         const jsonContent = JSON.parse(content);
         jsonContent.version = version;
         if (!isProduction) {
-          jsonContent.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self'";
+          jsonContent.content_security_policy = {
+            extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
+          };
         }
         return JSON.stringify(jsonContent, null, 2);
       },
